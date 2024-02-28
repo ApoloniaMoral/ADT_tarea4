@@ -100,8 +100,7 @@ public class Loan {
     @Override
     public String toString() {
         return "Loan{" +
-                "id=" + id +
-                ", checkout_date=" + checkout_date +
+                "checkout_date=" + checkout_date +
                 ", due_date=" + due_date +
                 ", returned_date=" + returned_date +
                 ", item=" + item +

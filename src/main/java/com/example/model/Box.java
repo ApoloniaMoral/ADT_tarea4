@@ -84,8 +84,7 @@ public class Box {
     @Override
     public String toString() {
         return "Box{" +
-                "id=" + id +
-                ", label='" + label + '\'' +
+                "label='" + label + '\'' +
                 ", location='" + location + '\'' +
                 ", items=" + items +
                 '}';

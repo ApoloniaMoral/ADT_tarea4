@@ -21,5 +21,8 @@
         <mapping class="com.example.model.Loan" />
         <mapping class="com.example.model.Category" />
         <mapping class="com.example.model.User" />
+        <mapping class="com.example.app.CLI"/>
+        <mapping class="com.example.app.ItemService"/>
+        <mapping class="com.example.app.LoanService"/>
     </session-factory>
 </hibernate-configuration>

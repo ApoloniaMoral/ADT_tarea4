@@ -1,63 +1,120 @@
 package com.example.app;
 
+import com.example.HibernateUtil;
 import com.example.model.Item;
 import com.example.model.Loan;
+import org.hibernate.Session;
+import org.hibernate.Transaction;
 
 import java.util.ArrayList;
 import java.util.List;
 
 public class LoanService {
-    private List<Loan> loans; // Supongamos que Loan es una clase que representa un préstamo
-
-    public LoanService() {
-        this.loans = new ArrayList<>();
-    }
 
     public String loanItemToUser(Long itemId, Long userId) {
-        // Aquí iría la lógica para prestar un ítem al usuario
-        // Supongamos que se realiza alguna operación y se agrega un préstamo a la lista de préstamos
-        loans.add(new Loan(itemId, userId));
-        return "Item prestado correctamente";
+        try (Session session = HibernateUtil.getSessionFactory().openSession()) {
+            Transaction transaction = session.beginTransaction();
+
+            // Obtener el ítem de la base de datos
+            Item item = session.get(Item.class, itemId);
+
+            if (item == null) {
+                transaction.rollback(); // Deshacer la transacción si el ítem no se encuentra
+                return "Item no encontrado";
+            }
+
+            // Crear un nuevo préstamo
+            Loan newLoan = new Loan(item.getId(), userId);
+
+            // Guardar el préstamo en la base de datos
+            session.save(newLoan);
+            transaction.commit();
+
+            return "Item prestado correctamente";
+        } catch (Exception e) {
+            e.printStackTrace();
+            return "Fallo al prestar el ítem";
+        }
     }
 
     public String returnItem(Long itemId) {
-        // Aquí iría la lógica para devolver un ítem
-        // Supongamos que se realiza alguna operación para devolver el ítem y se elimina el préstamo de la lista
-        loans.removeIf(loan -> loan.getItem().equals(itemId));
-        return "Item devuelto correctamente";
+        try (Session session = HibernateUtil.getSessionFactory().openSession()) {
+            Transaction transaction = session.beginTransaction();
+
+            // Obtener el préstamo correspondiente al ítem de la base de datos
+            Loan loan = session.createQuery("FROM Loan WHERE item_id = :itemId", Loan.class)
+                    .setParameter("itemId", itemId)
+                    .uniqueResult();
+
+            if (loan == null) {
+                transaction.rollback(); // Deshacer la transacción si el préstamo no se encuentra
+                return "Préstamo no encontrado";
+            }
+
+            // Eliminar el préstamo de la base de datos
+            session.delete(loan);
+            transaction.commit();
+
+            return "Item devuelto correctamente";
+        } catch (Exception e) {
+            e.printStackTrace();
+            return "Fallo al devolver el ítem";
+        }
     }
 
     public List<Item> getItemsLoanedToUser(Long userId) {
-        // Aquí iría la lógica para obtener los ítems prestados a un usuario específico
-        // Supongamos que se recorre la lista de préstamos y se obtienen los ítems prestados al usuario
         List<Item> items = new ArrayList<>();
-        for (Loan loan : loans) {
-            if (loan.getUser().equals(userId)) {
-                items.add(new Item(loan.getItem())); // Suponiendo que Item es una clase que representa un ítem
+
+        try (Session session = HibernateUtil.getSessionFactory().openSession()) {
+            // Consulta para obtener los ítems prestados al usuario
+            List<Loan> userLoans = session.createQuery("FROM Loan WHERE user_id = :userId", Loan.class)
+                    .setParameter("userId", userId)
+                    .getResultList();
+
+            // Recorrer los préstamos y obtener los ítems correspondientes
+            for (Loan loan : userLoans) {
+                items.add(loan.getItem());
             }
+        } catch (Exception e) {
+            e.printStackTrace();
         }
+
         return items;
     }
 
     public List<Item> getAllItemsOnLoan() {
-        // Aquí iría la lógica para obtener todos los ítems prestados
-        // Supongamos que se recorre la lista de préstamos y se obtienen todos los ítems prestados
         List<Item> items = new ArrayList<>();
-        for (Loan loan : loans) {
-            items.add(new Item(loan.getItem())); // Suponiendo que Item es una clase que representa un ítem
+
+        try (Session session = HibernateUtil.getSessionFactory().openSession()) {
+            // Consulta para obtener todos los préstamos
+            List<Loan> allLoans = session.createQuery("FROM Loan", Loan.class).getResultList();
+
+            // Recorrer los préstamos y obtener los ítems correspondientes
+            for (Loan loan : allLoans) {
+                items.add(loan.getItem());
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
         }
+
         return items;
     }
 
+
     public List<Loan> getAllLoansFromItem(Long itemId) {
-        // Aquí iría la lógica para obtener todos los préstamos de un ítem específico
-        // Supongamos que se recorre la lista de préstamos y se obtienen todos los préstamos del ítem
         List<Loan> itemLoans = new ArrayList<>();
-        for (Loan loan : loans) {
-            if (loan.getItem().equals(itemId)) {
-                itemLoans.add(loan);
-            }
+
+        try (Session session = HibernateUtil.getSessionFactory().openSession()) {
+            // Consulta para obtener todos los préstamos relacionados con el ítem
+            List<Loan> loans = session.createQuery("FROM Loan WHERE item_id = :itemId", Loan.class)
+                    .setParameter("itemId", itemId)
+                    .getResultList();
+
+            itemLoans.addAll(loans);
+        } catch (Exception e) {
+            e.printStackTrace();
         }
+
         return itemLoans;
     }
 }

@@ -1,7 +1,7 @@
 package com.example.app;
+
 import com.example.HibernateUtil;
 import com.example.model.Item;
-import jakarta.persistence.Query;
 import org.hibernate.Session;
 import org.hibernate.Transaction;
 
@@ -9,45 +9,42 @@ import java.util.List;
 
 public class ItemService {
 
-        private Session session;
+    public String reassignItemToBox(Long itemId, long boxId) {
+        try (Session session = HibernateUtil.getSessionFactory().openSession()) {
+            Transaction transaction = session.beginTransaction();
 
-        public ItemService() {
-            this.session = HibernateUtil.getSessionFactory().openSession();
-        }
+            // Recuperar el objeto Item de la base de datos usando su ID
+            Item item = session.get(Item.class, itemId);
 
-        public String reassignItemToBox(Long itemId, Long boxId) {
-            Transaction transaction = null;
-            try {
-                transaction = session.beginTransaction();
-
-                // Realizar la actualización del ID de la caja del ítem en la base de datos
-                Query query = session.createQuery("UPDATE Item SET boxId = :boxId WHERE id = :itemId");
-
-                query.setParameter("boxId", boxId);
-                query.setParameter("itemId", itemId);
-                int result = query.executeUpdate();
-
-                transaction.commit();
-
-                if (result > 0) {
-                    return "Item reubicado correctamente";
-                } else {
-                    return "Fallo al reubicar el item";
-                }
-            } catch (Exception e) {
-                if (transaction != null) {
-                    transaction.rollback();
-                }
-                e.printStackTrace();
-                return "Fallo al reubicar el item";
+            if (item == null) {
+                transaction.rollback(); // Deshacer la transacción si el ítem no se encuentra
+                return "Ítem no encontrado";
             }
 
-        }
+            // Modificar el atributo boxId del objeto Item
+            item.setBox(boxId);
 
-        public List<Item> listAllItems() {
-            // Suponiendo que tienes mapeada la entidad Item con Hibernate
-            return session.createQuery("FROM Item", Item.class).getResultList();
-        }
+            // Guardar los cambios en la base de datos
+            session.update(item);
+            transaction.commit();
 
+            return "Item reubicado correctamente";
+        } catch (Exception e) {
+            e.printStackTrace();
+            return "Fallo al reubicar el ítem";
+        }
     }
+
+
+    public List<Item> listAllItems() {
+        try (Session session = HibernateUtil.getSessionFactory().openSession()) {
+            // Consulta para obtener todos los ítems
+            return session.createQuery("FROM Item", Item.class).getResultList();
+        } catch (Exception e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
+}
+
 

@@ -14,9 +14,13 @@ public class ItemServiceTest {
 
     private ItemService itemService;
 
+    public ItemServiceTest(ItemService itemService) {
+        this.itemService = itemService;
+    }
+
     @BeforeEach
     public void setUp() {
-        itemService = new ItemService();
+        this.itemService = new ItemService();
         // Llamada al seeder para preparar la base de datos
         seed();
     }
