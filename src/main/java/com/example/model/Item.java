@@ -16,7 +16,7 @@ public class Item {
     private String description;
 
     @ManyToOne
-    @JoinColumn (name= "box_id")
+    @JoinColumn(name= "box_id")
     private Box box;
 
     @ManyToMany

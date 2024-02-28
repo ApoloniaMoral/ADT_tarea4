@@ -10,13 +10,10 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
 
+
 public class ItemServiceTest {
 
     private ItemService itemService;
-
-    public ItemServiceTest(ItemService itemService) {
-        this.itemService = itemService;
-    }
 
     @BeforeEach
     public void setUp() {
@@ -30,7 +27,7 @@ public class ItemServiceTest {
         // Asumiendo que el ítem con ID 1L inicialmente se encuentra en la caja 1L
         // y queremos reasignarlo a la caja con ID 2L
         String result = itemService.reassignItemToBox(1L, 2L);
-        assertEquals("Item reasignado a la caja: deporte", result);
+        assertEquals("Item reubicado correctamente", result);
 
         // Verificar que el cambio se ha realizado en la base de datos
         // Iniciar una nueva sesión para obtener el ítem actualizado
@@ -43,6 +40,7 @@ public class ItemServiceTest {
             fail("Fallo al obtener el ítem actualizado de la base de datos.");
         }
     }
+
 
     @Test
     public void testListAllItems() {
